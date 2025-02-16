@@ -2,8 +2,7 @@ pipeline {
     agent any
     
     environment {
-        AWS_REGION = 'us-west-2'
-        TERRAFORM_VERSION = '1.5.0'
+        TF_IN_AUTOMATION = 'true'
     }
     
     stages {
@@ -15,56 +14,26 @@ pipeline {
         
         stage('Terraform Init') {
             steps {
-                withCredentials([[
-                    $class: 'AWSCredentialsBinding',
-                    credentialsId: 'aws-credentials',
-                    accessKeyVariable: 'AKIA3C6FL5YK2IUQGKMA',
-                    secretKeyVariable: 'sCa0W9JtEEb3baIqC9Bpur/jKKetHtUFtaJk/sDqY'
-                ]]) {
-                    sh '''
-                        terraform init \
-                        -backend-config="region=${AWS_REGION}"
-                    '''
+                script {
+                    sh 'terraform init'
                 }
             }
         }
         
         stage('Terraform Plan') {
             steps {
-                withCredentials([[
-                    $class: 'AWSCredentialsBinding',
-                    credentialsId: 'aws-credentials',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh '''
-                        terraform plan \
-                        -var="aws_region=${AWS_REGION}" \
-                        -var="bucket_name=my-unique-bucket-name" \
-                        -var="environment=dev" \
-                        -out=tfplan
-                    '''
+                script {
+                    sh 'terraform plan'
                 }
             }
         }
         
         stage('Terraform Apply') {
             steps {
-                withCredentials([[
-                    $class: 'AWSCredentialsBinding',
-                    credentialsId: 'aws-credentials',
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                ]]) {
-                    sh 'terraform apply -auto-approve tfplan'
+                script {
+                    sh 'terraform apply -auto-approve'
                 }
             }
-        }
-    }
-    
-    post {
-        always {
-            cleanWs()
         }
     }
 }
