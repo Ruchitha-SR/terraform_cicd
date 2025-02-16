@@ -4,7 +4,8 @@ pipeline {
     environment {
         // Assuming Terraform is installed in C:\Program Files\terraform
         PATH = "${PATH};C:\\Users\\marti\\Downloads\\terraform_1.10.5_windows_amd64"
-        AWS_CREDENTIALS = credentials('aws-credentials')
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
     stages {
