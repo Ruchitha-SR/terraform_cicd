@@ -14,6 +14,6 @@ variable "environment" {
 }
 
 variable "environment1" {
-  description = "Environment name"
+  description = "Environment name2"
   default     = "dev"
 }
