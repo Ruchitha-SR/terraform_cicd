@@ -1,6 +1,11 @@
 pipeline {
     agent any
     
+    environment {
+        AWS_REGION = 'us-west-2'
+        TERRAFORM_VERSION = '1.5.0'
+    }
+    
     stages {
         stage('Checkout') {
             steps {
@@ -10,19 +15,49 @@ pipeline {
         
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                withCredentials([[
+                    $class: 'AWSCredentialsBinding',
+                    credentialsId: 'aws-credentials',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh '''
+                        terraform init \
+                        -backend-config="region=${AWS_REGION}"
+                    '''
+                }
             }
         }
         
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan -out=tfplan'
+                withCredentials([[
+                    $class: 'AWSCredentialsBinding',
+                    credentialsId: 'aws-credentials',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh '''
+                        terraform plan \
+                        -var="aws_region=${AWS_REGION}" \
+                        -var="bucket_name=my-unique-bucket-name" \
+                        -var="environment=dev" \
+                        -out=tfplan
+                    '''
+                }
             }
         }
         
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -auto-approve tfplan'
+                withCredentials([[
+                    $class: 'AWSCredentialsBinding',
+                    credentialsId: 'aws-credentials',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh 'terraform apply -auto-approve tfplan'
+                }
             }
         }
     }
