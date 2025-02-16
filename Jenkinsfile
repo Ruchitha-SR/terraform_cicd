@@ -1,37 +1,55 @@
 pipeline {
-    agent any
-    
+
+    parameters {
+        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
+    } 
     environment {
-        // Assuming Terraform is installed in C:\Program Files\terraform
         PATH = "${PATH};C:\\Users\\marti\\Downloads\\terraform_1.10.5_windows_amd64"
         AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
+   agent  any
     stages {
-        stage('Verify Tools') {
+        stage('checkout') {
             steps {
-                // Verify Terraform is accessible
-                bat 'terraform --version'
+                 script{
+                        dir("terraform")
+                        {
+                            git "https://github.com/Ruchitha-SR/terraform_cicd.git"
+                        }
+                    }
+                }
             }
-        }
-        
-        stage('Terraform Init') {
+
+        stage('Plan') {
             steps {
                 bat 'terraform init'
+                bat "terraform plan -out tfplan"
+                bat 'terraform show -no-color tfplan > tfplan.txt'
             }
         }
-        
-        stage('Terraform Plan') {
+        stage('Approval') {
+           when {
+               not {
+                   equals expected: true, actual: params.autoApprove
+               }
+           }
+
+           steps {
+               script {
+                    def plan = readFile 'terraform/tfplan.txt'
+                    input message: "Do you want to apply the plan?",
+                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+               }
+           }
+       }
+
+        stage('Apply') {
             steps {
-                bat 'terraform plan -out=tfplan'
-            }
-        }
-        
-        stage('Terraform Apply') {
-            steps {
-                bat 'terraform apply -auto-approve tfplan'
+                bat "terraform apply -input=false tfplan"
             }
         }
     }
-}
+
+  }
