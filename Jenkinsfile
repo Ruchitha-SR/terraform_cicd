@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_CREDENTIALS = credentials('aws-credentials')
         TF_IN_AUTOMATION = 'true'
-        PATH = "${PATH};C:\Users\marti\Downloads\terraform_1.10.5_windows_amd64"  // Adjust path according to your Terraform installation
+        PATH = "C:\Users\marti\Downloads\terraform_1.10.5_windows_amd64"  // Adjust path according to your Terraform installation
     }
 
     stages {
