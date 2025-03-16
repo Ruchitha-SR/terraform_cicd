@@ -8,3 +8,10 @@ resource "aws_s3_bucket" "example" {
     Environment = var.environment
   }
 }
+
+resource "aws_s3_bucket" "example2" {
+  bucket = "mybucketnameruchitha3020"
+  tags = {
+    Environment = "TEST_TAG"
+  }
+}
