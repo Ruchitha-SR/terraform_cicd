@@ -23,4 +23,7 @@ step 7:
 Create a pipeline in Jenkins by giving source as git.
 
 step 8:
+Install terrform in local and give the local path in jenkins file.
+
+step 9:
 Run the pipeline.
